@@ -1,9 +1,13 @@
 import AL, { Character, Merchant } from "alclient";
 import logger from "../logger.js"
 import { healthRegen, manaRegen } from "../utils/regen.js";
+import {partyLeader} from "../utils/party.js";
+import {goldTracker} from "../logger/gold.js";
+import {Registry} from "prom-client";
 
-const keepItems = ["slimestaff","gslime","beewings","hpamulet","scroll0","seashell","ringsj","gem0","stand0"]
+const keepItems = ["slimestaff","gslime","beewings","hpamulet","scroll0","seashell","ringsj","gem0","stand0","candy1"]
 const bank2Items = ["gslime","beewings","seashell","gem0"]
+const partyMembers = ["ephara"]
 
 async function runMerchant(bot: Merchant){
     if (!bot) return;
@@ -16,16 +20,17 @@ async function runMerchant(bot: Merchant){
         }
     }
     if (bot.ready && !bot.rip) {
-        healthRegen(bot);
-        manaRegen(bot);
-        potionBulkBuy(bot);
+        await partyLeader(bot, partyMembers)
+        await healthRegen(bot);
+        await manaRegen(bot);
+        await potionBulkBuy(bot);
         if (potty === false) { // We don't need to buy potions
             if (!bot.smartMoving){
                 await bot.smartMove("goo")
             }
             await sellUnwantedItems(bot)
+            await giveLuck(bot)
         }
-        // logger.info(potty)
     }
 
     setTimeout(async () => {
@@ -84,10 +89,30 @@ async function bankItems(m: Merchant) {
 
 }
 
-export async function mechLogin(name: string) {
+async function giveLuck(bot: Merchant) {
+    const target = bot.getPlayer({ canWalkTo: true, returnNearest: true, withinRange: "mluck", isNPC: false})
+    if (!target) return;
+    if (!target.s.mluck){
+        if (!bot.isOnCooldown("mluck")){
+        //    The bot can use MLUCK
+            if (target.name){
+                try{
+                    await bot.mluck(target.name)
+                    logger.info(`Gave ${target.name} mluck!`)
+                } catch (e) {
+                    logger.warn(e);
+                }
+            }
+        }
+    }
+}
+
+export async function mechLogin(name: string, reg: Registry) {
     logger.info(`Starting bot ${name}`)
     let bot = await AL.Game.startMerchant(name, "EU", "II")
     logger.info(`${bot.name} logged in`)
+    let sGold = bot.gold
+    await goldTracker(bot, reg, sGold)
     await runMerchant(bot)
 }
 

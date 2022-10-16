@@ -26,6 +26,11 @@ async function runMage(bot: Mage){
     }
     if (bot.ready){
         // The bot is now ready to do shit
+        try{
+            await bot.acceptPartyInvite("stevenly")
+        } catch (e){
+
+        }
         await healthRegen(bot);
         await manaRegen(bot);
         await singleAttack(bot, monster);
