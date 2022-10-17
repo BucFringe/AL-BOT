@@ -102,3 +102,12 @@ dist
 
 # TernJS port file
 .tern-port
+
+# typescript stuff
+credentials.json
+out/*
+
+# Prometheus config
+/prometheus/alert.yaml
+/prometheus/prometheus.yaml
+/promtail/config.yaml
