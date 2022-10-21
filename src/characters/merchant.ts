@@ -4,40 +4,30 @@ import { healthRegen, manaRegen } from "../utils/regen.js";
 import {partyLeader} from "../utils/party.js";
 import {goldTracker} from "../logger/gold.js";
 import {setGold} from "../logger/prom.js";
+import {PrismaClient} from "@prisma/client";
 
 const keepItems = ["slimestaff","gslime","beewings","hpamulet","scroll0","seashell","ringsj","gem0","stand0","candy1"]
 const bank2Items = ["gslime","beewings","seashell","gem0"]
 const partyMembers = ["ephara","manarocks"]
+const prisma = new PrismaClient()
 
-async function runMerchant(bot: Merchant){
-    if (!bot) return;
-    if (bot.rip){
-        logger.warn(`${bot.name} is dead`)
-        try{
-            await bot.respawn();
-        } catch (e){
-            logger.error(e);
+async function runMerchantLoops(bot: Merchant){
+    await prisma.$connect();
+    const config = await prisma.charconfig.findFirst({
+        where: {
+            name : bot.name
         }
-    }
-    if (bot.ready && !bot.rip) {
-        await partyLeader(bot, partyMembers)
-        await healthRegen(bot);
+    })
+    if (!config) return;
+
+    setInterval(async () => {
+        await upgradeItems(bot, 'slimestaff')
+    }, 4000)
+
+    setInterval(async () => {
         await manaRegen(bot);
-        await potionBulkBuy(bot);
-        if (potty === false) { // We don't need to buy potions
-            await upgradeItems(bot, "slimestaff")
-            if (!bot.smartMoving){
-                await bot.smartMove("goo")
-            }
-            await sellUnwantedItems(bot)
-            await giveLuck(bot)
-            await setGold(bot.gold)
-            await upgradeItems(bot, "slimestaff")
-        }
-    }
+    }, 1000)
 
-    setTimeout(async () => {
-        await runMerchant(bot), 3000})
 }
 
 
@@ -111,12 +101,15 @@ async function giveLuck(bot: Merchant) {
 }
 
 export async function mechLogin(name: string) {
+
     logger.info(`Starting bot ${name}`)
     let bot = await AL.Game.startMerchant(name, "EU", "II")
     logger.info(`${bot.name} logged in`)
     let sGold = bot.gold
     await goldTracker(bot, sGold)
-    await runMerchant(bot)
+    await runMerchantLoops(bot).then(async () => {
+        await prisma.$disconnect();
+    })
 }
 
 export async function upgradeItems(bot: Merchant, item: ItemName){
@@ -124,22 +117,32 @@ export async function upgradeItems(bot: Merchant, item: ItemName){
     let items = bot.locateItems(item)
     if (items.length > 6){
         if (!bot.smartMoving){
-            await bot.smartMove('main');
-            if ((bot.countItem('scroll0')) > 10){
+            await bot.smartMove('scrolls');
+            if ((bot.countItem('scroll0')) < 10){
                 await bot.buy('scroll0', 10)
-                console.log('buy scrolls')
+
             }
             if(items.length > numberToKeep) {
-                let filteredItems = bot.items.filter(w => w != null)
-                // @ts-ignore
-                const lowerstaff = bot.locateItem(item, filteredItems, { returnLowestLevel: true })
-                console.log(bot.items[lowerstaff])
-                let scrolls = bot.locateItem('scroll0')
-                await bot.massProduction()
-                await bot.upgrade(lowerstaff, scrolls)
-                // @ts-ignore
-                let highestItem = bot.locateItem(item, filteredItems, { returnHighestLevel: true })
-                console.log(bot.items[highestItem])
+                try{
+                    let filteredItems = bot.items.filter(w => w != null)
+                    // logger.info(filteredItems);
+                    // @ts-ignore
+                    const lowerstaff = bot.locateItem(item, filteredItems, { returnLowestLevel: true })
+                    // console.log(bot.items[lowerstaff])
+                    let scrolls = bot.locateItem('scroll0')
+                    await bot.useMPPot(bot.locateItem('mpot0'))
+                    await bot.massProduction()
+                    await bot.upgrade(lowerstaff, scrolls)
+                    // @ts-ignore
+                    let highestItem = bot.locateItem(item, filteredItems, { returnHighestLevel: true })
+                    if (bot.items[lowerstaff]){
+                        logger.info(`The ${item} has been upgraded to ${bot.items[lowerstaff]?.level}`)
+                    } else {
+                        logger.info('We lost the item')
+                    }
+                } catch (e) {
+                    logger.error(e);
+                }
             }
         }
     }
