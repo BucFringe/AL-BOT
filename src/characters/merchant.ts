@@ -120,21 +120,21 @@ export async function upgradeItems(bot: Merchant, item: ItemName){
             await bot.smartMove('scrolls');
             if ((bot.countItem('scroll0')) < 10){
                 await bot.buy('scroll0', 10)
-
             }
             if(items.length > numberToKeep) {
                 try{
                     let filteredItems = bot.items.filter(w => w != null)
                     // logger.info(filteredItems);
                     // @ts-ignore
-                    const lowerstaff = bot.locateItem(item, filteredItems, { returnLowestLevel: true })
+                    const lowerstaff = bot.locateItem(item, bot.items, { returnLowestLevel: true })
+                    console.log(lowerstaff)
                     // console.log(bot.items[lowerstaff])
                     let scrolls = bot.locateItem('scroll0')
                     await bot.useMPPot(bot.locateItem('mpot0'))
                     await bot.massProduction()
                     await bot.upgrade(lowerstaff, scrolls)
                     // @ts-ignore
-                    let highestItem = bot.locateItem(item, filteredItems, { returnHighestLevel: true })
+                    let highestItem = bot.locateItem(item, bot.items, { returnHighestLevel: true })
                     if (bot.items[lowerstaff]){
                         logger.info(`The ${item} has been upgraded to ${bot.items[lowerstaff]?.level}`)
                     } else {
