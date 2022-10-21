@@ -14,7 +14,7 @@ export async function looting(bot: Character){
 
 export async function sendMoney(bot: Character){
     try{
-        if (bot.gold > 1000){
+        if (bot.gold > 10000){
             logger.info(`${bot.name} has ${bot.gold} gold`)
             await bot.sendGold("stevenly", bot.gold);
         }

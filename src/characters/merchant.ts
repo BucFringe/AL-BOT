@@ -1,13 +1,13 @@
-import AL, { Character, Merchant } from "alclient";
+import AL, {Character, ItemData, ItemName, Merchant} from "alclient";
 import logger from "../logger.js"
 import { healthRegen, manaRegen } from "../utils/regen.js";
 import {partyLeader} from "../utils/party.js";
 import {goldTracker} from "../logger/gold.js";
-import {Registry} from "prom-client";
+import {setGold} from "../logger/prom.js";
 
 const keepItems = ["slimestaff","gslime","beewings","hpamulet","scroll0","seashell","ringsj","gem0","stand0","candy1"]
 const bank2Items = ["gslime","beewings","seashell","gem0"]
-const partyMembers = ["ephara"]
+const partyMembers = ["ephara","manarocks"]
 
 async function runMerchant(bot: Merchant){
     if (!bot) return;
@@ -25,16 +25,19 @@ async function runMerchant(bot: Merchant){
         await manaRegen(bot);
         await potionBulkBuy(bot);
         if (potty === false) { // We don't need to buy potions
+            await upgradeItems(bot, "slimestaff")
             if (!bot.smartMoving){
                 await bot.smartMove("goo")
             }
             await sellUnwantedItems(bot)
             await giveLuck(bot)
+            await setGold(bot.gold)
+            await upgradeItems(bot, "slimestaff")
         }
     }
 
     setTimeout(async () => {
-        await runMerchant(bot), 1000})
+        await runMerchant(bot), 3000})
 }
 
 
@@ -107,13 +110,40 @@ async function giveLuck(bot: Merchant) {
     }
 }
 
-export async function mechLogin(name: string, reg: Registry) {
+export async function mechLogin(name: string) {
     logger.info(`Starting bot ${name}`)
     let bot = await AL.Game.startMerchant(name, "EU", "II")
     logger.info(`${bot.name} logged in`)
     let sGold = bot.gold
-    await goldTracker(bot, reg, sGold)
+    await goldTracker(bot, sGold)
     await runMerchant(bot)
 }
+
+export async function upgradeItems(bot: Merchant, item: ItemName){
+    let numberToKeep = 2
+    let items = bot.locateItems(item)
+    if (items.length > 6){
+        if (!bot.smartMoving){
+            await bot.smartMove('main');
+            if ((bot.countItem('scroll0')) > 10){
+                await bot.buy('scroll0', 10)
+                console.log('buy scrolls')
+            }
+            if(items.length > numberToKeep) {
+                let filteredItems = bot.items.filter(w => w != null)
+                // @ts-ignore
+                const lowerstaff = bot.locateItem(item, filteredItems, { returnLowestLevel: true })
+                console.log(bot.items[lowerstaff])
+                let scrolls = bot.locateItem('scroll0')
+                await bot.massProduction()
+                await bot.upgrade(lowerstaff, scrolls)
+                // @ts-ignore
+                let highestItem = bot.locateItem(item, filteredItems, { returnHighestLevel: true })
+                console.log(bot.items[highestItem])
+            }
+        }
+    }
+}
+
 
 let potty = false;

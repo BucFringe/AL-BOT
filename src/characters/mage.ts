@@ -3,6 +3,7 @@ import AL, { Character, Mage, MonsterName} from "alclient";
 import { singleAttack } from "../attack/singleAttack.js";
 import { healthRegen, manaRegen } from "../utils/regen.js";
 import { sendMoney, sendPackage } from "../attack/looting.js";
+import {setXP} from "../logger/prom.js";
 
 const monster: MonsterName = "goo" 
 const itemsKeep = ["hpot0","mpot0"]
@@ -36,6 +37,7 @@ async function runMage(bot: Mage){
         await singleAttack(bot, monster);
         await sendMoney(bot);
         await sendPackage(bot, itemsKeep);
+        await setXP(bot.xp);
     }
 
     setTimeout(async () => {
