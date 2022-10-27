@@ -3,7 +3,7 @@ import logger from "../logger.js";
 
 export async function healthRegen(bot: Character){
     try{
-        if (!bot.rip){
+        if (!bot.rip && bot.ready){
             const hpot0 = bot.locateItem("hpot0");
             if (bot.hp < (bot.max_hp - 200)){
                 // The bot needs to do some healing

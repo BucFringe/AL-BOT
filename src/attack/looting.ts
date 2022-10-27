@@ -14,7 +14,7 @@ export async function looting(bot: Character){
 
 export async function sendMoney(bot: Character){
     try{
-        if (bot.gold > 10000){
+        if (bot.gold > 5000 && bot.ready){
             logger.info(`${bot.name} has ${bot.gold} gold`)
             await bot.sendGold("stevenly", bot.gold);
         }
@@ -25,6 +25,7 @@ export async function sendMoney(bot: Character){
 
 export async function sendPackage(bot: Character, keepItems: any){
     try{
+        if (!bot.ready) return;
         for (let item of bot.items) {
             if (!item) continue;
             if (!keepItems.includes(item.name)){

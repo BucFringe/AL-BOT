@@ -5,6 +5,7 @@ import { looting } from "./looting.js";
 
 export async function singleAttack(bot: Character, monster: MonsterName){
     // Where each bot will attack a different target.
+    if(!bot.ready) return;
     const target = bot.getEntity({ canWalkTo: true, type: monster, withinRange: "attack"})
     if (target){
         if (!bot.isOnCooldown("attack")){

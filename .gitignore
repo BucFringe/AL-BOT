@@ -106,8 +106,3 @@ dist
 # typescript stuff
 credentials.json
 out/*
-
-# Prometheus config
-/prometheus/alert.yaml
-/prometheus/prometheus.yaml
-/promtail/config.yaml

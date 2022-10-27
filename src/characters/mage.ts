@@ -3,17 +3,57 @@ import AL, { Character, Mage, MonsterName} from "alclient";
 import { singleAttack } from "../attack/singleAttack.js";
 import { healthRegen, manaRegen } from "../utils/regen.js";
 import { sendMoney, sendPackage } from "../attack/looting.js";
-import {setXP} from "../logger/prom.js";
+import {updateStats} from "../logger/prom.js";
+import {getconfig} from "../utils/db.js";
+import {respawn} from "../utils/rip.js";
+
 
 const monster: MonsterName = "goo" 
 const itemsKeep = ["hpot0","mpot0"]
 
 export async function mageLogin(name: string){
     logger.info(`Starting bot ${name}`);
-    let bot = await AL.Game.startMage(name, "EU", "II");
+    let bot = await AL.Game.startMage(name, "US", "I");
     logger.info(`${bot.name} logged in`)
-    await runMage(bot)
+    await runMageLoops(bot);
 }
+
+async function runMageLoops(bot: Mage){
+    let config = await getconfig(bot.name);
+    if (!config) return;
+
+    setInterval(async () => {
+        await respawn(bot);
+    }, 1000);
+
+    setInterval(async () => {
+        try{
+            await bot.acceptPartyInvite('stevenly')
+        } catch (e) {
+
+        }
+    },500);
+
+    setInterval(async () => {
+        await manaRegen(bot);
+        await healthRegen(bot);
+    },600);
+
+    setInterval(async () => {
+        await singleAttack(bot, monster);
+    }, 300);
+
+    setInterval(async () => {
+        await sendMoney(bot);
+        await sendPackage(bot, itemsKeep);
+    }, 2000);
+
+    setInterval(async () => {
+        await updateStats(bot);
+    }, 2000);
+}
+
+
 
 async function runMage(bot: Mage){
     if (!bot) return
@@ -37,7 +77,7 @@ async function runMage(bot: Mage){
         await singleAttack(bot, monster);
         await sendMoney(bot);
         await sendPackage(bot, itemsKeep);
-        await setXP(bot.xp);
+        await updateStats(bot);
     }
 
     setTimeout(async () => {
