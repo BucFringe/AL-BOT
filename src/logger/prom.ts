@@ -19,7 +19,7 @@ export async function runProm() {
     });
 
     app.listen(3001, () => {
-        console.log("Started metrics server on port 3000")
+        console.log("Started metrics server on port 3001")
     })
 }
 

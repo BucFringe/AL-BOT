@@ -44,3 +44,43 @@ export async function setTask(botName: string, newTask: string) {
         }
     })
 }
+
+// export async function updateLogStats(bot: Character) {
+//     if (!bot.ready) return;
+//     let trash = {
+//         "name": bot.name,
+//         "level": bot.level,
+//         "xp": bot.xp,
+//         "mana": bot.mp,
+//         "max_mana": bot.max_mp,
+//         "health": bot.hp,
+//         "items": bot.items,
+//     }
+//     try {
+//         let unid = await prisma.charStats.findFirst({
+//             where: {name: bot.name}
+//         })
+//         let items = bot.items
+//         if (!unid || !bot) return false;
+//         let id = unid.id
+//         // @ts-ignore
+//         await prisma.charStats.update({
+//             where: { //@ts-ignore
+//                 id
+//             },
+//             data: {
+//                 "name": bot.name,
+//                 //@ts-ignore
+//                 "level": bot.level,
+//                 "xp": bot.xp,
+//                 "mana": bot.mp,
+//                 "max_mana": bot.max_mp,
+//                 "health": bot.hp,
+//                 "items": items,
+//             }
+//         })
+//     } catch (e) {
+//         console.error(e)
+//     }
+//
+// }

@@ -6,10 +6,14 @@ import { sendMoney, sendPackage } from "../attack/looting.js";
 import {updateStats} from "../logger/prom.js";
 import {getconfig} from "../utils/db.js";
 import {respawn} from "../utils/rip.js";
+// @ts-ignore
+import { Novu } from '@novu/node';
+import * as fs from "fs";
 
 
 const monster: MonsterName = "goo" 
 const itemsKeep = ["hpot0","mpot0"]
+const novu = new Novu('8c8ff344010abb013f0d15dfaddc0fbb')
 
 export async function mageLogin(name: string){
     logger.info(`Starting bot ${name}`);
@@ -37,6 +41,7 @@ async function runMageLoops(bot: Mage){
     setInterval(async () => {
         await manaRegen(bot);
         await healthRegen(bot);
+        // await updateLogStats(bot)
     },600);
 
     setInterval(async () => {
@@ -50,6 +55,14 @@ async function runMageLoops(bot: Mage){
 
     setInterval(async () => {
         await updateStats(bot);
+        // await novu.trigger('al-bot',{
+        //     to: {
+        //         subscriberId: '635d4c5bc8c0dbc6c9c82f28',
+        //     },
+        //     payload: {
+        //
+        //     }
+        // })
     }, 2000);
 }
 

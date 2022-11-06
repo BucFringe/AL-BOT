@@ -22,6 +22,10 @@ async function runMerchantLoops(bot: Merchant){
     if (!config) return;
 
     setInterval(async () => {
+        if (bot.smartMoving) await bot.closeMerchantStand();
+    }, 300)
+
+    setInterval(async () => {
         await partyLeader(bot, partyMembers)
     },10000);
 
@@ -93,6 +97,11 @@ async function potionBulkBuy(m: Merchant){
 }
 
 async function sellUnwantedItems(m: Merchant){
+    if (m.isFull()){
+        setTask(m.name, 'tooMuchShit');
+    }
+
+
     if(m.isFull()){
         if (!m.smartMoving){
             await m.smartMove("main")
@@ -149,16 +158,18 @@ export async function mechLogin(name: string) {
 
 export async function upgradeItems(bot: Merchant, item: ItemName){
     let task = await getTask(bot.name)
+    // console.log(`1 - ${task}`);
     // console.log(task)
     let numberToKeep = 2
     let items = bot.locateItems(item)
+    // console.log(`2 - ${bot.gold}`);
     if (items.length > 10 && task == 'farm') {
         await setTask(bot.name,'upgrade')
     } else if (items.length <= numberToKeep && task == 'upgrade') {
         // we now need to keep them
         await setTask(bot.name, 'farm')
     }
-    if (bot.gold === 50000 && task === 'upgrade'){
+    if (bot.gold >= 50000 && task === 'upgrade'){
         if (!bot.smartMoving){
             await bot.smartMove('scrolls');
             if ((bot.countItem('scroll0')) < 1){

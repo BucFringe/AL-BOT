@@ -7,6 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+type CharStatsItems {
+  name String
+  q    Float
+}
+
+model charStats {
+  id       String           @id @default(auto()) @map("_id") @db.ObjectId
+  health   Float
+  items    CharStatsItems[]
+  level    Float
+  mana     Float
+  max_mana Float
+  name     String
+  xp       Float
+}
+
 model charconfig {
   id      String  @id @default(auto()) @map("_id") @db.ObjectId
   monster String?

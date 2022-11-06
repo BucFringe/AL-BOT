@@ -19,9 +19,11 @@
   },
   "homepage": "https://github.com/BucFringe/AL-BOT#readme",
   "dependencies": {
+    "@novu/node": "^0.8.0",
     "@prisma/client": "^4.5.0",
     "alclient": "^0.15.51",
     "express": "^4.18.2",
+    "novu": "^0.8.0",
     "pino": "^8.6.1",
     "pino-pretty": "^9.1.1",
     "prom-client": "^14.1.0",
